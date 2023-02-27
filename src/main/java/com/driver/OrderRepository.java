@@ -10,35 +10,50 @@ import java.util.Map;
 @Repository
 public class OrderRepository {
 
-    Map<String,Order> oid = new HashMap<>();
-    Map<String,DeliveryPartner> pid = new HashMap<>();
-    Map<String,String> poid =new HashMap<>();
+    Map<String, Order> oid = new HashMap<>();
+    Map<String, DeliveryPartner> pid = new HashMap<>();
+    Map<String, String> opid = new HashMap<>();
+    Map<String, List<String>> polist = new HashMap<>();
 
-    public void addo(Order order){
-        oid.put(order.getId(),order);
+    public void addOrder(Order order) {
+        oid.put(order.getId(), order);
     }
 
-    public void addp(DeliveryPartner partner){
-        pid.put(partner.getId(),partner);
+    public void addPartner(String partnerid) {
+        pid.put(partnerid, new DeliveryPartner(partnerid));//smjo
     }
 
-    public void assignpartner(String ido, String ids){
-        poid.put( ids,ido);
+    public void addOrderPartnerPair(String ido, String ids) {
+        if (opid.containsKey(ido) && pid.containsKey(ids)) {
+            opid.put(ids, ido);
+
+            List<String> curro = new ArrayList<>();
+            if (pid.containsKey(ids)) {
+                curro = polist.get(ids);
+            }
+            curro.add(ido);
+            polist.put(ids, curro);
+
+            //incr order of partner
+            DeliveryPartner deliveryPartner = pid.get(ids);
+            deliveryPartner.getNumberOfOrders(curro.size());
+        }
     }
 
-    public Order getOrder(String oids){
+    public Order getOrderById(String oids) {
         return oid.get(oids);
     }
 
-    public DeliveryPartner getPartner(String pids){
+    public DeliveryPartner getPartnerById(String pids) {
         return pid.get(pids);
     }
 
-    public Order getOrderPartner(String pids){
+    public Order getOrderPartner(String pids) {
         return oid.get(pid.get(pids));
     }
-    public int nPartner(String pid){
-        return poid.get(pid).length();
+
+    public int getOrderCountByPartnerId(String pid) {
+        return polist.get(pid).size();
     }
 
 //    public List<String> allpOrder(String pid){
@@ -47,25 +62,67 @@ public class OrderRepository {
 //        return arList;
 //    }
 
-    public List<String> allOrder(){
+    public List<String> getOrdersByPartnerId(String pids) {
+        return polist.get(pids);
+    }
+
+    public List<String> getAllOrders() {
+
+
         List<String> list = new ArrayList<>();
-        for(String key: oid.keySet()){
-            list.add(key);
+        for (String order : oid.keySet()) {
+            list.add(order);
         }
         return list;
     }
 
-    public int notAssign(){
-        return oid.size()-poid.size();
+    public int getCountOfUnassignedOrders(){
+        return oid.size() - opid.size();
     }
 
-    public void Dunassign(String pids){
-        poid.remove(pid);
+    public int getOrdersLeftAfterGivenTimeByPartnerId(int time,String pid){
+        int cnt = 0;
+
+        List<String> list = polist.get(pid);
+        for(String oids:list){
+            int dtime = oid.get(oids).getDeliveryTime();
+            if(dtime > time){
+                cnt++;
+            }
+        }
+        return cnt;
+
+    }
+
+
+  public int getLastDeliveryTimeByPartnerId(String pid){
+        int maxtime = 0;
+        List<String> list = polist.get(pid);
+      for(String oids:list){
+          int dtime = oid.get(oids).getDeliveryTime();
+          maxtime = Math.max(maxtime,dtime);
+      }
+      return maxtime;
+  }
+
+  public void deletePartnerById(String pids){
         pid.remove(pids);
-    }
+        List<String> list = polist.get(pids);
+        polist.remove(pids);
 
-    public void DOrder(String oids){
+        for(String order:list){
+            polist.remove(order);
+        }
+  }
+
+  public void deleteOrderById(String oids){
         oid.remove(oids);
+        String partnerid = opid.get(oids);
+        opid.remove(oids);
 
-    }
+        polist.get(partnerid).remove(oids);
+        pid.get(partnerid).setNumberOfOrders(polist.get(partnerid).size());
+
+
+  }
 }

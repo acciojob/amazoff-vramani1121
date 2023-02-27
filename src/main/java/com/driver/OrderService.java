@@ -12,28 +12,28 @@ public class OrderService {
     @Autowired
     OrderRepository repo;
 
-    public void addo(Order order){
-        repo.addo(order);
+    public void addOrder(Order order){
+        repo.addOrder(order);
     }
 
-    public void addp(DeliveryPartner partner){
-        repo.addp(partner);
+    public void addPartner(String partnerid){
+        repo.addPartner(partnerid);
     }
 
-    public void assignpartner(String order, String partner){
-        repo.assignpartner(order,partner);
+    public void addOrderPartnerPair(String order, String partner){
+        repo.addOrderPartnerPair(order,partner);
     }
 
-    public Order getOrder(String oids){
-        return repo.getOrder(oids);
+    public Order getOrderById(String oids){
+        return repo.getOrderById(oids);
     }
 
-    public DeliveryPartner getPartner(String pids){
-        return repo.getPartner(pids);
+    public DeliveryPartner getPartnerById(String pids){
+        return repo.getPartnerById(pids);
     }
 
-    public int nPartner(String pid){
-        return repo.nPartner(pid);
+    public int getOrderCountByPartnerId(String pid){
+        return repo.getOrderCountByPartnerId(pid);
     }
 
 //    public List<String> allpOrder(String pid){
@@ -45,21 +45,44 @@ public Order getOrderPartner(String pids){
     return repo.getOrderPartner(pids);
 }
 
-    public List<String> allOrder(){
+    public List<String> getOrdersByPartnerId(String pid){
 
-        return repo.allOrder();
+        return repo.getOrdersByPartnerId(pid);
+    }
+    public List<String> getAllOrders(){
+        return repo.getAllOrders();
     }
 
-    public int notAssign(){
-        return repo.notAssign();
+    public int getCountOfUnassignedOrders(){
+        return repo.getCountOfUnassignedOrders();
     }
 
-    public void Dunassign(String pids){
-        repo.Dunassign(pids);
+    public int getOrdersLeftAfterGivenTimeByPartnerId(String times,String pid){
+        String time[] = times.split(":");
+        int ntime = Integer.parseInt(time[0])*60 + Integer.parseInt(time[1]);
+
+        return repo.getOrdersLeftAfterGivenTimeByPartnerId(ntime,pid);
     }
 
-    public void DOrder(String oids){
-        repo.DOrder(oids);
+    public String getLastDeliveryTimeByPartnerId(String pid){
+        int time = repo.getLastDeliveryTimeByPartnerId(pid);
+        String hh = String.valueOf(time/60);
+        String mm = String.valueOf(time%60);
 
+        if(hh.length()<2)
+            hh = "0"+hh;
+
+        if(mm.length()<2)
+            mm = "0"+mm;
+
+        return hh+":"+mm;
     }
-}
+
+    public void deletePartnerById(String pid){
+         repo.deletePartnerById(pid);
+    }
+
+    public void deleteOrderById(String oid) {
+        repo.deleteOrderById(oid);
+    }
+   }
